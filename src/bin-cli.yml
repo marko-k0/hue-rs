@@ -1,0 +1,99 @@
+name: hue-rc
+version: "1.0"
+author: Marko Kosmerl <marko.kosmerl@gmail.com>
+about: Philips Hue CLI
+settings:
+    - SubcommandRequiredElseHelp
+args:
+    - config:
+        short: c
+        long: config
+        value_name: FILE
+        help: Sets a custom config file
+        takes_value: true
+    - verbose:
+        short: v
+        multiple: true
+        help: Sets the level of verbosity
+subcommands:
+
+    - light:
+        about: Controls the lights 
+        settings:
+          - SubcommandRequiredElseHelp
+        subcommands:
+          - list:
+              about: List all the lights
+          - on:
+              about: Turn on a light(s)
+              args:
+                - light:
+                    help: Light number(s)
+                    takes_value: true
+                    multiple: true
+          - off:
+              about: Turn off a light(s)
+              args:
+                - light:
+                    help: Light number(s)
+                    takes_value: true
+                    multiple: true
+
+    - group:
+        about: Controls a group of lights 
+        settings:
+          - SubcommandRequiredElseHelp
+        subcommands:
+          - list:
+              about: List all the groups
+          - on:
+              about: Turn on a group(s)
+              args:
+                - light:
+                    help: Group number(s)
+                    takes_value: true
+                    multiple: true
+          - off:
+              about: Turn off a group(s)
+              args:
+                - light:
+                    help: Group number(s)
+                    takes_value: true
+                    multiple: true
+
+    - scene:
+        about: Controls a scene
+        settings:
+          - SubcommandRequiredElseHelp
+        subcommands:
+          - list:
+              about: List all the scenes
+          - on:
+              about: Turn on a scene(s)
+              args:
+                - scene:
+                    help: Scene key(s)
+                    takes_value: true
+                    multiple: true
+          - off:
+              about: Turn off a group(s)
+              args:
+                - light:
+                    help: Scene key(s)
+                    takes_value: true
+                    multiple: true
+          - save:
+              about: Save a scene
+              subcommands:
+                - light:
+                    about: Save a light scene
+                    args:
+                      - light:
+                          help: Light id
+                          takes_value: true
+                - group:
+                    about: Save a group scene
+                    args:
+                      - group:
+                          help: Group id
+                          takes_value: true

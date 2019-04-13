@@ -1,0 +1,27 @@
+[package]
+name = "hue-rs"
+version = "0.1.0"
+authors = ["Marko Kosmerl <marko.kosmerl@gmail.com>"]
+edition = "2018"
+description = "Rust library for Philips Hue lights API"
+license = "MIT"
+
+[dependencies]
+clap = {version = "2.32", features = ["yaml"]}
+reqwest = "*"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "*"
+serde_yaml = "*"
+serde_derive = "*"
+slog = "*"
+slog-term = "*"
+custom_derive = "*"
+derive_builder = "*"
+
+[lib]
+name = "hue"
+path = "src/lib.rs"
+
+[[bin]]
+name = "hue"
+path = "src/bin.rs"
