@@ -1,8 +1,10 @@
 use std::time::Duration;
 pub mod lights;
 
+extern crate config;
 extern crate reqwest;
 extern crate serde;
+#[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
@@ -10,24 +12,21 @@ extern crate custom_derive;
 #[macro_use]
 extern crate derive_builder;
 
+mod settings;
+use settings::Settings;
+
 type Res<T> = Result<T, Box<std::error::Error>>;
 
 #[derive(Debug)]
-struct Config {
-    ip: String,
-    username: String,
-}
-
-#[derive(Debug)]
 pub struct Client {
-    config: Config,
+    settings: Settings,
     client: reqwest::Client,
 }
 
 impl Client {
-    pub fn new(ip: String, username: String) -> Self {
+    pub fn new() -> Self {
         Client {
-            config: Config { ip, username },
+            settings: Settings::new().unwrap(),
             client: reqwest::Client::builder()
                 .timeout(Duration::from_secs(10))
                 .danger_accept_invalid_certs(true)
@@ -36,7 +35,7 @@ impl Client {
     }
 
     fn rest_call_url(&self, suffix: &str) -> String {
-        format!("https://{}/api/{}/{}", self.config.ip, self.config.username, suffix)
+        format!("https://{}/api/{}/{}", self.settings.ip(), self.settings.username(), suffix)
     }
 
     pub fn get(&self, call: &str) -> Result<String, reqwest::Error> {

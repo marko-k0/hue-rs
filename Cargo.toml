@@ -7,6 +7,7 @@ description = "Rust library for Philips Hue lights API"
 license = "MIT"
 
 [dependencies]
+config = "*"
 clap = {version = "2.32", features = ["yaml"]}
 reqwest = "*"
 serde = { version = "1.0", features = ["derive"] }

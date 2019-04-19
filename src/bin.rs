@@ -25,10 +25,7 @@ fn main() {
 }
 
 fn run(matches: ArgMatches) -> Result<(), Box<Error>> {
-    let ref client = Client::new(
-        String::from("192.168.200.1"),
-        String::from("asdf"),
-    );
+    let ref client = Client::new();
 
     match matches.subcommand() {
         ("light", Some(sub_m)) => return run_light(client, sub_m),
@@ -36,8 +33,6 @@ fn run(matches: ArgMatches) -> Result<(), Box<Error>> {
         ("scene", Some(sub_m)) => return run_scene(client, sub_m),
         (_, _) => return Ok(()),
     }
-
-    Ok(())
 }
 
 fn run_light(client: &Client, matches: &ArgMatches) -> Result<(), Box<Error>> {
@@ -52,15 +47,11 @@ fn run_light(client: &Client, matches: &ArgMatches) -> Result<(), Box<Error>> {
 fn run_light_list(client: &Client) -> Result<(), Box<Error>> {
     let light_list = Light::get_lights(&client);
 
-    //if let Ok(lights) = light_list {
-    //    let light_list_yml = serde_yaml::to_string(&lights).unwrap();
-    //    println!("{}", light_list_yml);
-    //} else if let Err(e) = light_list {
-    //    format!("{}", e);
-    //}
-
-    for light in light_list.unwrap().values() {
-        light.test();
+    if let Ok(lights) = light_list {
+        let light_list_yml = serde_yaml::to_string(&lights).unwrap();
+        println!("{}", light_list_yml);
+    } else if let Err(e) = light_list {
+        //XXX:
     }
 
     Ok(())

@@ -55,6 +55,28 @@ impl LightState {
             None => 0,
         }
     }
+    pub fn set_hue(&mut self, hue: u16) {
+        //XXX: only for color light
+        self.hue = Some(hue);
+    }
+    pub fn sat(&self) -> u8 {
+        match self.sat {
+            Some(s) => s,
+            None => 0,
+        }
+    }
+    pub fn set_sat(&mut self, sat: u8) {
+        //XXX: only for color light
+        self.sat = Some(sat);
+    }
+    pub fn alert(&self) -> &str {
+        &self.alert.as_ref().unwrap()
+    }
+    pub fn set_alert(&mut self, alert: &str) {
+        //XXX: only for color light
+        self.alert = Some(alert.to_owned())
+    }
+
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -81,6 +103,7 @@ pub struct Light<'a> {
     swversion: String
 }
 
+/// API for operations on the lights.
 impl<'a> Light<'a> {
 
     pub fn get_lights(http_client: &'a Client) -> Res<BTreeMap<String,Light>> {
@@ -101,6 +124,7 @@ impl<'a> Light<'a> {
         Ok(light)
     }
 
+    //XXX: do we need this?
     pub fn set_state(http_client: &'a Client, id: u8, state: &LightState) -> Res<String> {
         let state_json = serde_json::to_string(state)?;
         let response = http_client.put(&format!("lights/{}/state", id), state_json)?;
@@ -109,28 +133,42 @@ impl<'a> Light<'a> {
 
     pub fn update(&self) -> Res<String> {
         let state_json = serde_json::to_string(&self.state)?;
-        let response = self.client.unwrap().put(
-            &format!("lights/{}/state", self.id.unwrap()), state_json)?;
+        let response = self.client().put(
+            &format!("lights/{}/state", self.id()), state_json)?;
         Ok(response)
     }
 
     pub fn rename(&mut self, name: &str) -> Res<&Self> {
         let body = json!({"name": name});
-        self.client.unwrap().put(&format!("lights/{}", self.id.unwrap()), body.to_string())?;
+        self.client().put(&format!("lights/{}", self.id()), body.to_string())?;
         self.name = name.to_owned();
         Ok(self)
     }
 
     pub fn delete(self) -> Res<()> {
-        self.client.unwrap().delete(&format!("lights/{}", self.id.unwrap()))?;
+        self.client().delete(&format!("lights/{}", self.id()))?;
         Ok(())
     }
 
-    pub fn test(&self) {
-        let response = self.client.unwrap().get(&format!("lights/2")).unwrap();
-        println!("{}", response);
+    pub fn id(&self) -> u8 {
+        self.id.unwrap()
     }
 
+    pub fn client(&self) -> &Client {
+        self.client.unwrap()
+    }
+
+    pub fn state(&mut self) -> &mut LightState {
+        &mut self.state
+    }
+
+    pub fn ty(&self) -> &str {
+        &self.ty
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 

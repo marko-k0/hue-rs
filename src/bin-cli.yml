@@ -1,4 +1,4 @@
-name: hue-rc
+name: hue
 version: "1.0"
 author: Marko Kosmerl <marko.kosmerl@gmail.com>
 about: Philips Hue CLI

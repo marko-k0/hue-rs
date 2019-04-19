@@ -1,0 +1,5 @@
+debug = false
+
+[hue]
+ip = 192.168.0.28
+username = hue
