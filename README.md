@@ -54,7 +54,7 @@ extern crate hue-rs;
 use hue-rs::*;
 use hue-rs::lights::*;
 
-pub fn funhue) {
+pub fn funhue() {
     let client = Client::new();
 
     let mut light = Light::get_light(&client, 1).unwrap();
