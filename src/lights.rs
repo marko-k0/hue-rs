@@ -40,14 +40,16 @@ impl LightState {
     pub fn on(&self) -> bool {
         self.on.unwrap()
     }
-    pub fn set_on(&mut self, power: bool) {
+    pub fn set_on(&mut self, power: bool) -> &mut Self {
         self.on = Some(power);
+        self
     }
     pub fn bri(&self) -> u8 {
         self.bri.unwrap()
     }
-    pub fn set_bri(&mut self, bri: u8) {
+    pub fn set_bri(&mut self, bri: u8) -> &mut Self {
         self.bri = Some(bri);
+        self
     }
     pub fn hue(&self) -> u16 {
         match self.hue {
@@ -55,9 +57,11 @@ impl LightState {
             None => 0,
         }
     }
-    pub fn set_hue(&mut self, hue: u16) {
-        //XXX: only for color light
-        self.hue = Some(hue);
+    pub fn set_hue(&mut self, hue: u16) -> &mut Self {
+        if let Some(_) = self.hue {
+            self.hue = Some(hue);
+        }
+        self
     }
     pub fn sat(&self) -> u8 {
         match self.sat {
@@ -65,18 +69,58 @@ impl LightState {
             None => 0,
         }
     }
-    pub fn set_sat(&mut self, sat: u8) {
-        //XXX: only for color light
-        self.sat = Some(sat);
+    pub fn set_sat(&mut self, sat: u8) -> &mut Self {
+        if let Some(_) = self.sat {
+            self.sat = Some(sat);
+        }
+        self
+    }
+    pub fn ct(&self) -> u16 {
+        match self.ct {
+            Some(ct) => ct,
+            None => 0,
+        }
+    }
+    pub fn set_ct(&mut self, ct: u16) -> &mut Self {
+        if let Some(_) = self.ct {
+            self.ct = Some(ct);
+        }
+        self
+    }
+    pub fn xy(&self) -> [f32; 2] {
+        match self.xy {
+            Some(xy) => xy.clone(),
+            None => [0.0, 0.0],
+        }
+    }
+    pub fn set_xy(&mut self, xy: [f32; 2]) -> &mut Self {
+        if let Some(_) = self.xy {
+            self.xy = Some(xy);
+        }
+        self
     }
     pub fn alert(&self) -> &str {
         &self.alert.as_ref().unwrap()
     }
     pub fn set_alert(&mut self, alert: &str) {
-        //XXX: only for color light
-        self.alert = Some(alert.to_owned())
+        let values = [ "none", "select", "lselect" ];
+        if values.contains(&alert) {
+            self.alert = Some(alert.to_owned())
+        }
     }
-
+    pub fn effect(&self) -> &str {
+        &self.effect.as_ref().unwrap()
+    }
+    pub fn set_effect(&mut self, effect: &str) {
+        let values = [ "none", "colorloop" ];
+        if values.contains(&effect) {
+            self.effect = Some(effect.to_owned())
+        }
+    }
+    pub fn set_transitiontime(&mut self, time: u16) -> &mut Self {
+        self.transitiontime = Some(time);
+        self
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -131,14 +175,16 @@ impl<'a> Light<'a> {
         Ok(response)
     }
 
-    pub fn update(&self) -> Res<String> {
+    pub fn update(&mut self) -> Res<String> {
+        //TODO: I should get a new state from API
         let state_json = serde_json::to_string(&self.state)?;
         let response = self.client().put(
             &format!("lights/{}/state", self.id()), state_json)?;
+        self.state.transitiontime = None;
         Ok(response)
     }
 
-    pub fn rename(&mut self, name: &str) -> Res<&Self> {
+    pub fn rename(&mut self, name: &str) -> Res<&mut Self> {
         let body = json!({"name": name});
         self.client().put(&format!("lights/{}", self.id()), body.to_string())?;
         self.name = name.to_owned();
