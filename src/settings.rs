@@ -32,14 +32,11 @@ impl Settings {
         if let (Ok(username), Ok(ip)) = (env::var("HUE_USERNAME"), env::var("HUE_IP")) {
             s.set("hue.username", username)?;
             s.set("hue.ip", ip)?;
-            println!("hmmmmm0");
         }
 
         // panic if we don't have config
-        println!("hmmmmm1");
         s.get_str("hue.ip").expect("Missing Hue IP configuration!");
         s.get_str("hue.username").expect("Missing Hue Username configuration!");
-        println!("hmmmmm2");
 
         s.try_into()
     }
