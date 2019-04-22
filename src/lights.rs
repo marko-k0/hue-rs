@@ -130,9 +130,9 @@ struct LightSWUpdate {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Light<'a> {
+pub struct Light<'a, C: HTTPClient + Default> {
     #[serde(skip)]
-    client: Option<&'a Client>,
+    client: Option<&'a C>,
     #[serde(skip)]
     id: Option<u8>,
     state: LightState,
@@ -148,11 +148,11 @@ pub struct Light<'a> {
 }
 
 /// API for operations on the lights.
-impl<'a> Light<'a> {
+impl<'a, C: HTTPClient + Default> Light<'a, C> {
 
-    pub fn get_lights(http_client: &'a Client) -> Res<BTreeMap<String,Light>> {
+    pub fn get_lights(http_client: &'a C) -> Res<BTreeMap<String,Self>> {
         let response = http_client.get("lights")?;
-        let mut lights: BTreeMap<String,Light> = serde_json::from_str(&response)?;
+        let mut lights: BTreeMap<String,Self> = serde_json::from_str(&response)?;
         for (id, light) in lights.iter_mut() {
             light.id = Some(id.parse().unwrap());
             light.client = Some(http_client);
@@ -160,28 +160,22 @@ impl<'a> Light<'a> {
         Ok(lights)
     }
 
-    pub fn get_light(http_client: &'a Client, id: u8) -> Res<Self> {
+    pub fn get_light(http_client: &'a C, id: u8) -> Res<Self> {
         let response = http_client.get(&format!("lights/{}", id))?;
-        let mut light: Light = serde_json::from_str(&response)?;
+        let mut light: Self = serde_json::from_str(&response)?;
         light.id = Some(id);
         light.client = Some(http_client);
         Ok(light)
     }
 
-    //XXX: do we need this?
-    pub fn set_state(http_client: &'a Client, id: u8, state: &LightState) -> Res<String> {
-        let state_json = serde_json::to_string(state)?;
-        let response = http_client.put(&format!("lights/{}/state", id), state_json)?;
-        Ok(response)
-    }
-
-    pub fn update(&mut self) -> Res<String> {
-        //TODO: I should get a new state from API
+    pub fn update(&mut self) -> Res<Self> {
+        // update state
         let state_json = serde_json::to_string(&self.state)?;
-        let response = self.client().put(
-            &format!("lights/{}/state", self.id()), state_json)?;
-        self.state.transitiontime = None;
-        Ok(response)
+        self.client().put(&format!("lights/{}/state", self.id()), state_json)?;
+        // get new state
+        let response = self.client().get(&format!("lights/{}", self.id()))?;
+        let light: Self = serde_json::from_str(&response)?;
+        Ok(light)
     }
 
     pub fn rename(&mut self, name: &str) -> Res<&mut Self> {
@@ -200,7 +194,7 @@ impl<'a> Light<'a> {
         self.id.unwrap()
     }
 
-    pub fn client(&self) -> &Client {
+    pub fn client(&self) -> &C {
         self.client.unwrap()
     }
 

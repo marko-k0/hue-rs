@@ -11,7 +11,7 @@ use clap::App;
 use clap::ArgMatches;
 use serde_yaml;
 
-use hue::Client;
+use hue::*;
 use hue::lights::*;
 
 fn main() {
@@ -45,7 +45,7 @@ fn run_light(client: &Client, matches: &ArgMatches) -> Result<(), Box<Error>> {
 }
 
 fn run_light_list(client: &Client) -> Result<(), Box<Error>> {
-    let light_list = Light::get_lights(&client);
+    let light_list = Light::get_lights(client);
 
     if let Ok(lights) = light_list {
         let light_list_yml = serde_yaml::to_string(&lights).unwrap();
@@ -63,8 +63,8 @@ fn run_light_power(client: &Client, matches: &ArgMatches, power: bool) -> Result
 
         let state = LightStateBuilder::default().on(power).build()?;
         for val in vals {
-            let r = Light::set_state(client, val.parse()?,  &state);
-            println!("{}", r.unwrap());
+            //let r = Light::set_state(client, val.parse()?,  &state);
+            //println!("{}", r.unwrap());
         }
     } else {
         //TODO: do this for all the lights

@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::time::Duration;
 pub mod lights;
 
@@ -17,16 +18,32 @@ use settings::Settings;
 
 type Res<T> = Result<T, Box<std::error::Error>>;
 
+pub trait HTTPClient {
+    fn get(&self, call: &str) -> Result<String, Box<Error>>;
+    fn post(&self, call: &str, body: String) -> Result<String, Box<Error>>;
+    fn put(&self, call: &str, body: String) -> Result<String, Box<Error>>;
+    fn delete(&self, call: &str) -> Result<String, Box<Error>>;
+}
+
 #[derive(Debug)]
 pub struct Client {
     settings: Settings,
     client: reqwest::Client,
 }
 
+impl Default for Client {
+    fn default() -> Self {
+        Client {
+            settings: Settings::new(None).unwrap(),
+            client: reqwest::Client::new(),
+        }
+    }
+}
+
 impl Client {
     pub fn new() -> Self {
         Client {
-            settings: Settings::new().unwrap(),
+            settings: Settings::new(None).unwrap(),
             client: reqwest::Client::builder()
                 .timeout(Duration::from_secs(10))
                 .danger_accept_invalid_certs(true)
@@ -37,20 +54,22 @@ impl Client {
     fn rest_call_url(&self, suffix: &str) -> String {
         format!("https://{}/api/{}/{}", self.settings.ip(), self.settings.username(), suffix)
     }
+}
 
-    pub fn get(&self, call: &str) -> Result<String, reqwest::Error> {
+impl HTTPClient for Client {
+    fn get(&self, call: &str) -> Result<String, Box<Error>> {
         Ok(self.client.get(self.rest_call_url(call).as_str()).send()?.text()?)
     }
 
-    pub fn post(&self, call: &str, body: String) -> Result<String, reqwest::Error> {
+    fn post(&self, call: &str, body: String) -> Result<String, Box<Error>> {
         Ok(self.client.post(self.rest_call_url(call).as_str()).body(body).send()?.text()?)
     }
 
-    pub fn put(&self, call: &str, body: String) -> Result<String, reqwest::Error> {
+    fn put(&self, call: &str, body: String) -> Result<String, Box<Error>> {
         Ok(self.client.put(self.rest_call_url(call).as_str()).body(body).send()?.text()?)
     }
 
-    pub fn delete(&self, call: &str) -> Result<String, reqwest::Error> {
+    fn delete(&self, call: &str) -> Result<String, Box<Error>> {
         Ok(self.client.delete(self.rest_call_url(call).as_str()).send()?.text()?)
     }
 }
