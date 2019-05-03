@@ -123,6 +123,66 @@ impl LightState {
     }
 }
 
+
+#[cfg(test)]
+mod tests_light_state {
+
+    use super::*;
+
+    #[test]
+    fn state_on_off() {
+        let mut state = LightStateBuilder::default().on(true).build().unwrap();
+        assert!(state.on());
+        state.set_on(false);
+        assert!(! state.on());
+    }
+
+    #[test]
+    fn state_bri() {
+        let mut state = LightStateBuilder::default().build().unwrap();
+        state.set_bri(100);
+        assert_eq!(state.bri(), 100);
+    }
+
+    #[test]
+    fn state_hue() {
+        let mut state = LightStateBuilder::default().build().unwrap();
+        assert_eq!(state.hue(), 0);
+        state.set_hue(100);
+        assert_eq!(state.hue(), 0);
+
+        let mut state = LightStateBuilder::default().hue(Some(10)).build().unwrap();
+        state.set_hue(100);
+        assert_eq!(state.hue(), 100);
+    }
+
+    #[test]
+    fn state_sat() {
+        let mut state = LightStateBuilder::default().build().unwrap();
+    }
+
+    #[test]
+    fn state_ct() {
+        let mut state = LightStateBuilder::default().build().unwrap();
+    }
+
+    #[test]
+    fn state_xy() {
+        let mut state = LightStateBuilder::default().build().unwrap();
+    }
+
+    #[test]
+    fn state_alarm() {
+        let mut state = LightStateBuilder::default().build().unwrap();
+    }
+
+    #[test]
+    fn state_effect() {
+        let mut state = LightStateBuilder::default().build().unwrap();
+    }
+}
+
+
 #[derive(Serialize, Deserialize, Debug)]
 struct LightSWUpdate {
     state: String,
@@ -211,15 +271,97 @@ impl<'a, C: HTTPClient + Default> Light<'a, C> {
     }
 }
 
-
 #[cfg(test)]
-mod tests {
+mod tests_api {
 
     use super::*;
 
+    #[derive(Default, Debug)]
+    struct HTTPClientMock {
+        return_string: Option<String>,
+        error: Option<String>,
+    }
+
+    impl HTTPClient for HTTPClientMock {
+        fn get(&self, _: &str) -> Result<String, Box<Error>> {
+            if let Some(s) = self.return_string.as_ref() {
+                Ok(s.to_owned())
+            } else {
+                let e_str = self.error.as_ref().unwrap().clone();
+                Err(e_str.into())
+            }
+        }
+
+        fn post(&self, _: &str, body: String) -> Result<String, Box<Error>> {
+            Ok("".to_owned())
+        }
+
+        fn put(&self, _: &str, body: String) -> Result<String, Box<Error>> {
+            Ok("".to_owned())
+        }
+
+        fn delete(&self, _: &str) -> Result<String, Box<Error>> {
+            Ok("".to_owned())
+        }
+    }
+
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn get_light_ok() {
+        let response = String::from(r#"
+        {
+            "state": {
+                "on": false,
+                "bri": 144,
+                "alert": "none",
+                "mode": "homeautomation",
+                "reachable": true
+            },
+            "swupdate": {
+                "state": "noupdates",
+                "lastinstall": "2018-11-29T23:31:54"
+            },
+            "type": "Dimmable light",
+            "name": "Hue white lamp 1",
+            "modelid": "LWB010",
+            "manufacturername": "Philips",
+            "productname": "Hue white lamp",
+            "capabilities": {
+                "certified": true,
+                "control": {
+                    "mindimlevel": 5000,
+                    "maxlumen": 806
+                },
+                "streaming": {
+                    "renderer": false,
+                    "proxy": false
+                }
+            },
+            "config": {
+                "archetype": "classicbulb",
+                "function": "functional",
+                "direction": "omnidirectional",
+                "startup": {
+                    "mode": "powerfail",
+                    "configured": true
+                }
+            },
+            "uniqueid": "00:17:88:01:02:24:3a:e8-0b",
+            "swversion": "1.46.13_r26312",
+            "swconfigid": "564ABA6B",
+            "productid": "Philips-LWB010-1-A19DLv3"
+        }"#);
+
+        let http_client_mock = HTTPClientMock{return_string: Some(response), error: None};
+        let light = Light::get_light(&http_client_mock, 1);
+        assert!(light.is_ok());
+    }
+
+    #[test]
+    fn get_light_err() {
+        let response = String::from("not expected response");
+        let http_client_mock = HTTPClientMock{return_string: Some(response), error: None};
+        let light = Light::get_light(&http_client_mock, 1);
+        assert!(light.is_err());
     }
 }
 

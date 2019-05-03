@@ -1,4 +1,5 @@
 use std::env;
+use std::path::Path;
 use config::{Config, ConfigError, File};
 
 #[derive(Debug, Deserialize, Default)]
@@ -25,8 +26,11 @@ impl Settings {
         s.set_default("debug", false)?;
 
         // file config
-        let file = config_file.unwrap_or("~/.huerc");
-        s.merge(File::with_name(file).required(false))?;
+        // XXX: really?
+        let home_path = env::var("HOME").unwrap();
+        let file_name = home_path + "/.huerc.ini";
+        let file = config_file.unwrap_or(&file_name);
+        s.merge(File::from(Path::new(file)).required(false))?;
 
         // environment variables
         if let (Ok(username), Ok(ip)) = (env::var("HUE_USERNAME"), env::var("HUE_IP")) {
