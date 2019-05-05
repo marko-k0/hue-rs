@@ -99,8 +99,11 @@ impl LightState {
         }
         self
     }
-    pub fn alert(&self) -> &str {
-        &self.alert.as_ref().unwrap()
+    pub fn alert(&self) -> String {
+        if let Some(alert_value) = &self.alert {
+            return alert_value.clone();
+        }
+        "".to_owned()
     }
     pub fn set_alert(&mut self, alert: &str) {
         let values = [ "none", "select", "lselect" ];
@@ -108,14 +111,23 @@ impl LightState {
             self.alert = Some(alert.to_owned())
         }
     }
-    pub fn effect(&self) -> &str {
-        &self.effect.as_ref().unwrap()
+    pub fn effect(&self) -> String {
+        if let Some(effect_value) = &self.effect {
+            return effect_value.clone();
+        }
+        "".to_owned()
     }
     pub fn set_effect(&mut self, effect: &str) {
         let values = [ "none", "colorloop" ];
         if values.contains(&effect) {
             self.effect = Some(effect.to_owned())
         }
+    }
+    pub fn colormode(&self) -> String {
+        if let Some(mode) = &self.colormode {
+            return mode.clone();
+        }
+        "".to_owned()
     }
     pub fn set_transitiontime(&mut self, time: u16) -> &mut Self {
         self.transitiontime = Some(time);
@@ -159,26 +171,57 @@ mod tests_light_state {
     #[test]
     fn state_sat() {
         let mut state = LightStateBuilder::default().build().unwrap();
+        assert_eq!(state.sat(), 0);
+        state.set_sat(100);
+        assert_eq!(state.sat(), 0);
+
+        let mut state = LightStateBuilder::default().sat(Some(10)).build().unwrap();
+        state.set_sat(100);
+        assert_eq!(state.sat(), 100);
     }
 
     #[test]
     fn state_ct() {
         let mut state = LightStateBuilder::default().build().unwrap();
+        assert_eq!(state.ct(), 0);
+        state.set_ct(100);
+        assert_eq!(state.ct(), 0);
+
+        let mut state = LightStateBuilder::default().ct(Some(10)).build().unwrap();
+        state.set_ct(100);
+        assert_eq!(state.ct(), 100);
     }
 
     #[test]
     fn state_xy() {
         let mut state = LightStateBuilder::default().build().unwrap();
+        assert_eq!(state.xy(), [0.0, 0.0]);
+        state.set_xy([10.0, 10.0]);
+        assert_eq!(state.xy(), [0.0, 0.0]);
+
+        let mut state = LightStateBuilder::default().xy(Some([0.0, 0.0])).build().unwrap();
+        state.set_xy([10.0, 10.0]);
+        assert_eq!(state.xy(), [10.0, 10.0]);
     }
 
     #[test]
-    fn state_alarm() {
+    fn state_alert() {
         let mut state = LightStateBuilder::default().build().unwrap();
+        assert_eq!(state.alert(), "");
+        state.set_alert("select");
+        assert_eq!(state.alert(), "select");
+        state.set_alert("something");
+        assert_eq!(state.alert(), "select");
     }
 
     #[test]
     fn state_effect() {
         let mut state = LightStateBuilder::default().build().unwrap();
+        assert_eq!(state.effect(), "");
+        state.set_effect("colorloop");
+        assert_eq!(state.effect(), "colorloop");
+        state.set_effect("something");
+        assert_eq!(state.effect(), "colorloop");
     }
 }
 

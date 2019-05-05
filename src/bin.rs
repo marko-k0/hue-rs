@@ -51,31 +51,35 @@ fn run_light_list(client: &Client) -> Result<(), Box<Error>> {
         let light_list_yml = serde_yaml::to_string(&lights).unwrap();
         println!("{}", light_list_yml);
     } else if let Err(e) = light_list {
-        //XXX:
+        return Result::Err(e.into())
     }
 
     Ok(())
 }
 
-fn run_light_power(client: &Client, matches: &ArgMatches, power: bool) -> Result<(), Box<Error>> {
-    if let Some(lights) = matches.values_of("light") {
+fn run_light_power(client: &Client, m: &ArgMatches, power: bool) -> Result<(), Box<Error>> {
+    if let Some(lights) = m.values_of("light") {
         let vals: Vec<&str> = lights.collect();
 
-        let state = LightStateBuilder::default().on(power).build()?;
         for val in vals {
-            //let r = Light::set_state(client, val.parse()?,  &state);
-            //println!("{}", r.unwrap());
+            let mut light = Light::get_light(client, val.parse()?)?;
+            light.state().set_on(power);
+            light.update()?;
         }
     } else {
-        //TODO: do this for all the lights
+        let mut lights = Light::get_lights(client)?;
+        for (_, light) in lights.iter_mut() {
+            light.state().set_on(power);
+            light.update()?;
+        }
     }
     Ok(())
 }
 
-fn run_group(client: &Client, matches: &ArgMatches) -> Result<(), Box<Error>> {
+fn run_group(client: &Client, m: &ArgMatches) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn run_scene(client: &Client, matches: &ArgMatches) -> Result<(), Box<Error>> {
+fn run_scene(client: &Client, m: &ArgMatches) -> Result<(), Box<Error>> {
     Ok(())
 }
