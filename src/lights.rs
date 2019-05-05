@@ -271,7 +271,7 @@ impl<'a, C: HTTPClient + Default> Light<'a, C> {
         Ok(light)
     }
 
-    pub fn update(&mut self) -> Res<Self> {
+    pub fn update_state(self) -> Res<Self> {
         // update state
         let state_json = serde_json::to_string(&self.state)?;
         self.client().put(&format!("lights/{}/state", self.id()), state_json)?;
@@ -315,38 +315,10 @@ impl<'a, C: HTTPClient + Default> Light<'a, C> {
 }
 
 #[cfg(test)]
-mod tests_api {
+mod tests_lights {
 
     use super::*;
-
-    #[derive(Default, Debug)]
-    struct HTTPClientMock {
-        return_string: Option<String>,
-        error: Option<String>,
-    }
-
-    impl HTTPClient for HTTPClientMock {
-        fn get(&self, _: &str) -> Result<String, Box<Error>> {
-            if let Some(s) = self.return_string.as_ref() {
-                Ok(s.to_owned())
-            } else {
-                let e_str = self.error.as_ref().unwrap().clone();
-                Err(e_str.into())
-            }
-        }
-
-        fn post(&self, _: &str, body: String) -> Result<String, Box<Error>> {
-            Ok("".to_owned())
-        }
-
-        fn put(&self, _: &str, body: String) -> Result<String, Box<Error>> {
-            Ok("".to_owned())
-        }
-
-        fn delete(&self, _: &str) -> Result<String, Box<Error>> {
-            Ok("".to_owned())
-        }
-    }
+    use super::test_common::HTTPClientMock;
 
     #[test]
     fn get_light_ok() {
@@ -394,7 +366,9 @@ mod tests_api {
             "productid": "Philips-LWB010-1-A19DLv3"
         }"#);
 
-        let http_client_mock = HTTPClientMock{return_string: Some(response), error: None};
+        let http_client_mock = HTTPClientMock{
+            body: None, return_string: Some(response), error: None
+        };
         let light = Light::get_light(&http_client_mock, 1);
         assert!(light.is_ok());
     }
@@ -402,7 +376,9 @@ mod tests_api {
     #[test]
     fn get_light_err() {
         let response = String::from("not expected response");
-        let http_client_mock = HTTPClientMock{return_string: Some(response), error: None};
+        let http_client_mock = HTTPClientMock{
+            body: None, return_string: Some(response), error: None
+        };
         let light = Light::get_light(&http_client_mock, 1);
         assert!(light.is_err());
     }

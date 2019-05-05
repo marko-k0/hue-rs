@@ -64,13 +64,13 @@ fn run_light_power(client: &Client, m: &ArgMatches, power: bool) -> Result<(), B
         for val in vals {
             let mut light = Light::get_light(client, val.parse()?)?;
             light.state().set_on(power);
-            light.update()?;
+            light.update_state()?;
         }
     } else {
-        let mut lights = Light::get_lights(client)?;
-        for (_, light) in lights.iter_mut() {
+        let lights = Light::get_lights(client)?;
+        for (_, mut light) in lights {
             light.state().set_on(power);
-            light.update()?;
+            light.update_state()?;
         }
     }
     Ok(())

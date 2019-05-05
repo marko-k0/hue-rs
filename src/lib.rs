@@ -73,3 +73,38 @@ impl HTTPClient for Client {
         Ok(self.client.delete(self.rest_call_url(call).as_str()).send()?.text()?)
     }
 }
+
+mod test_common {
+
+    use super::*;
+
+    #[derive(Default, Debug)]
+    pub struct HTTPClientMock {
+        pub body: Option<String>,
+        pub return_string: Option<String>,
+        pub error: Option<String>,
+    }
+
+    impl HTTPClient for HTTPClientMock {
+        fn get(&self, _: &str) -> Result<String, Box<Error>> {
+            if let Some(s) = self.return_string.as_ref() {
+                Ok(s.to_owned())
+            } else {
+                let e_str = self.error.as_ref().unwrap().clone();
+                Err(e_str.into())
+            }
+        }
+
+        fn post(&self, _: &str, _: String) -> Result<String, Box<Error>> {
+            Ok("".to_owned())
+        }
+
+        fn put(&self, _: &str, _: String) -> Result<String, Box<Error>> {
+            Ok("".to_owned())
+        }
+
+        fn delete(&self, _: &str) -> Result<String, Box<Error>> {
+            Ok("".to_owned())
+        }
+    }
+}
