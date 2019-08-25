@@ -33,7 +33,8 @@ impl Settings {
         s.merge(File::from(Path::new(file)).required(false))?;
 
         // environment variables
-        if let (Ok(username), Ok(ip)) = (env::var("HUE_USERNAME"), env::var("HUE_IP")) {
+        if let (Ok(username), Ok(ip)) =
+            (env::var("HUE_USERNAME"), env::var("HUE_IP")) {
             s.set("hue.username", username)?;
             s.set("hue.ip", ip)?;
         }

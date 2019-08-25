@@ -13,6 +13,7 @@ use serde_yaml;
 
 use hue::*;
 use hue::lights::*;
+use hue::groups::*;
 
 fn main() {
     let yaml = load_yaml!("bin-cli.yml");
@@ -24,7 +25,7 @@ fn main() {
     }
 }
 
-fn run(matches: ArgMatches) -> Result<(), Box<Error>> {
+fn run(matches: ArgMatches) -> Res<()> {
     let ref client = Client::new();
 
     match matches.subcommand() {
@@ -35,7 +36,7 @@ fn run(matches: ArgMatches) -> Result<(), Box<Error>> {
     }
 }
 
-fn run_light(client: &Client, matches: &ArgMatches) -> Result<(), Box<Error>> {
+fn run_light(client: &Client, matches: &ArgMatches) -> Res<()> {
     match matches.subcommand() {
         ("list", _) => return run_light_list(client),
         ("on", Some(sub_m)) => return run_light_power(client, sub_m, true),
@@ -44,7 +45,7 @@ fn run_light(client: &Client, matches: &ArgMatches) -> Result<(), Box<Error>> {
     }
 }
 
-fn run_light_list(client: &Client) -> Result<(), Box<Error>> {
+fn run_light_list(client: &Client) -> Res<()> {
     let light_list = Light::get_lights(client);
 
     if let Ok(lights) = light_list {
@@ -57,7 +58,7 @@ fn run_light_list(client: &Client) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn run_light_power(client: &Client, m: &ArgMatches, power: bool) -> Result<(), Box<Error>> {
+fn run_light_power(client: &Client, m: &ArgMatches, power: bool) -> Res<()> {
     if let Some(lights) = m.values_of("light") {
         let vals: Vec<&str> = lights.collect();
 
@@ -73,13 +74,53 @@ fn run_light_power(client: &Client, m: &ArgMatches, power: bool) -> Result<(), B
             light.update_state()?;
         }
     }
+
     Ok(())
 }
 
-fn run_group(client: &Client, m: &ArgMatches) -> Result<(), Box<Error>> {
+fn run_group(client: &Client, m: &ArgMatches) -> Res<()> {
+    match m.subcommand() {
+        ("list", _) => return run_group_list(client),
+        ("on", Some(sub_m)) => return run_group_power(client, sub_m, true),
+        ("off", Some(sub_m)) => return run_group_power(client, sub_m, false),
+        (_, _) => return Ok(()),
+    }
+}
+
+fn run_group_list(client: &Client) -> Res<()> {
+    let group_list = Group::get_groups(client);
+
+    if let Ok(groups) = group_list {
+        let group_list_yml = serde_yaml::to_string(&groups).unwrap();
+        println!("{}", group_list_yml);
+    } else if let Err(e) = group_list {
+        return Result::Err(e.into())
+    }
+
     Ok(())
 }
 
-fn run_scene(client: &Client, m: &ArgMatches) -> Result<(), Box<Error>> {
+fn run_group_power(client: &Client, m: &ArgMatches, power: bool) -> Res<()> {
+    if let Some(groups) = m.values_of("group") {
+        let vals: Vec<&str> = groups.collect();
+        for val in vals {
+            let mut group = Group::get_group(client, val.parse()?)?;
+            group.action().set_on(power);
+            group.update_state()?;
+        }
+    } else {
+        let groups = Group::get_groups(client)?;
+        for (_, mut group) in groups {
+            group.action().set_on(power);
+            group.update_state()?;
+        }
+    }
+
+    Ok(())
+}
+
+fn run_scene(client: &Client, m: &ArgMatches) -> Res<()> {
+    // TODO:
+
     Ok(())
 }

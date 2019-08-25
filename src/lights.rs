@@ -143,7 +143,8 @@ mod tests_light_state {
 
     #[test]
     fn state_on_off() {
-        let mut state = LightStateBuilder::default().on(true).build().unwrap();
+        let mut state = LightStateBuilder::default().on(true)
+            .build().unwrap();
         assert!(state.on());
         state.set_on(false);
         assert!(! state.on());
@@ -151,19 +152,22 @@ mod tests_light_state {
 
     #[test]
     fn state_bri() {
-        let mut state = LightStateBuilder::default().build().unwrap();
+        let mut state = LightStateBuilder::default()
+            .build().unwrap();
         state.set_bri(100);
         assert_eq!(state.bri(), 100);
     }
 
     #[test]
     fn state_hue() {
-        let mut state = LightStateBuilder::default().build().unwrap();
+        let mut state = LightStateBuilder::default()
+            .build().unwrap();
         assert_eq!(state.hue(), 0);
         state.set_hue(100);
         assert_eq!(state.hue(), 0);
 
-        let mut state = LightStateBuilder::default().hue(Some(10)).build().unwrap();
+        let mut state = LightStateBuilder::default().hue(Some(10))
+            .build().unwrap();
         state.set_hue(100);
         assert_eq!(state.hue(), 100);
     }
@@ -175,7 +179,8 @@ mod tests_light_state {
         state.set_sat(100);
         assert_eq!(state.sat(), 0);
 
-        let mut state = LightStateBuilder::default().sat(Some(10)).build().unwrap();
+        let mut state = LightStateBuilder::default().sat(Some(10))
+            .build().unwrap();
         state.set_sat(100);
         assert_eq!(state.sat(), 100);
     }
@@ -187,7 +192,8 @@ mod tests_light_state {
         state.set_ct(100);
         assert_eq!(state.ct(), 0);
 
-        let mut state = LightStateBuilder::default().ct(Some(10)).build().unwrap();
+        let mut state = LightStateBuilder::default().ct(Some(10))
+            .build().unwrap();
         state.set_ct(100);
         assert_eq!(state.ct(), 100);
     }
@@ -199,7 +205,8 @@ mod tests_light_state {
         state.set_xy([10.0, 10.0]);
         assert_eq!(state.xy(), [0.0, 0.0]);
 
-        let mut state = LightStateBuilder::default().xy(Some([0.0, 0.0])).build().unwrap();
+        let mut state = LightStateBuilder::default().xy(Some([0.0, 0.0]))
+            .build().unwrap();
         state.set_xy([10.0, 10.0]);
         assert_eq!(state.xy(), [10.0, 10.0]);
     }
@@ -254,8 +261,8 @@ pub struct Light<'a, C: HTTPClient + Default> {
 impl<'a, C: HTTPClient + Default> Light<'a, C> {
 
     pub fn get_lights(http_client: &'a C) -> Res<BTreeMap<String,Self>> {
-        let response = http_client.get("lights")?;
-        let mut lights: BTreeMap<String,Self> = serde_json::from_str(&response)?;
+        let resp = http_client.get("lights")?;
+        let mut lights: BTreeMap<String,Self> = serde_json::from_str(&resp)?;
         for (id, light) in lights.iter_mut() {
             light.id = Some(id.parse().unwrap());
             light.client = Some(http_client);

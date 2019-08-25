@@ -16,7 +16,6 @@ args:
         multiple: true
         help: Sets the level of verbosity
 subcommands:
-
     - light:
         about: Controls the lights 
         settings:
@@ -49,14 +48,14 @@ subcommands:
           - on:
               about: Turn on a group(s)
               args:
-                - light:
+                - group:
                     help: Group number(s)
                     takes_value: true
                     multiple: true
           - off:
               about: Turn off a group(s)
               args:
-                - light:
+                - group:
                     help: Group number(s)
                     takes_value: true
                     multiple: true

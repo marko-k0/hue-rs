@@ -7,7 +7,7 @@ use super::*;
 type GroupAction = lights::LightState;
 
 #[derive(Serialize, Deserialize, Debug)]
-struct GroupState {
+pub struct GroupState {
     all_on: bool,
     any_on: bool,
 }
@@ -18,17 +18,16 @@ pub struct Group<'a, C: HTTPClient + Default> {
     client: Option<&'a C>,
     #[serde(skip)]
     id: Option<u8>,
-    lights: [u8],
+    name: String,
+    lights: Vec<String>,
     #[serde(skip_serializing)]
-    sensors: [u8],
-    #[serde(rename="type", default="LightGroup")]
+    sensors: Vec<u8>,
+    #[serde(rename="type")]
     ty: String,
-    #[serde(skip_serializing)]
     state: GroupState,
     #[serde(skip_serializing)]
     recycle: bool,
-    #[serde(default="Other")]
-    class: String,
+    class: Option<String>,
     #[serde(skip_serializing)]
     action: GroupAction
 }
@@ -36,8 +35,8 @@ pub struct Group<'a, C: HTTPClient + Default> {
 impl<'a, C: HTTPClient + Default> Group<'a, C> {
 
     pub fn get_groups(http_client: &'a C) -> Res<BTreeMap<String, Self>> {
-        let response = http_client.get("groups")?;
-        let mut groups: BTreeMap<String,Self> = serde_json::from_str(&response)?;
+        let resp: String = http_client.get("groups")?;
+        let mut groups: BTreeMap<String,Self> = serde_json::from_str(&resp)?;
         for (id, group) in groups.iter_mut() {
             group.id = Some(id.parse().unwrap());
             group.client = Some(http_client);
@@ -53,23 +52,47 @@ impl<'a, C: HTTPClient + Default> Group<'a, C> {
         Ok(group)
     }
 
+    pub fn delete_group(http_client: &'a C, id: u8) -> Res<()> {
+        let _response = http_client.delete(&format!("groups/{}", id))?;
+        Ok(())
+    }
+
+    pub fn create_group(http_client: &'a C,
+                        name: String, lights: Vec<u8>,
+                        ty: Option<String>, class: Option<String>)
+                        -> Res<Self> {
+
+        // TODO: ty and class
+        let body = serde_json::json!({
+            "name": name,
+            "lights": lights
+        });
+
+        let response = http_client.post("groups", body.to_string())?;
+        let mut group: Self = serde_json::from_str(&response)?;
+        // TODO: parse id
+        //group.id =
+        group.client = Some(http_client);
+        Ok(group)
+    }
+
     pub fn update_state(self) -> Res<Self> {
         // update group
-        let state_json = serde_json::to_string(&self.action)?;
-        self.client().put(&format!("groups/{}/action", self.id()), state_json)?;
+        let state = serde_json::to_string(&self.action)?;
+        self.client().put(&format!("groups/{}/action", self.id()), state)?;
         // get updated group
-        let response = self.client().get(&format!("groups/{}", self.id()))?;
-        let group: Self = serde_json::from_str(&response)?;
+        let resp = self.client().get(&format!("groups/{}", self.id()))?;
+        let group: Self = serde_json::from_str(&resp)?;
         Ok(group)
     }
 
     pub fn update(self) -> Res<Self> {
         // update group
-        let attributes_json = serde_json::to_string(&self)?;
-        self.client().put(&format!("groups/{}", self.id()), attributes_json)?;
+        let attributes = serde_json::to_string(&self)?;
+        self.client().put(&format!("groups/{}", self.id()), attributes)?;
         // get updated group
-        let response = self.client().get(&format!("groups/{}", self.id()))?;
-        let group: Self = serde_json::from_str(&response)?;
+        let resp = self.client().get(&format!("groups/{}", self.id()))?;
+        let group: Self = serde_json::from_str(&resp)?;
         Ok(group)
     }
 
@@ -77,6 +100,27 @@ impl<'a, C: HTTPClient + Default> Group<'a, C> {
         self.client().delete(&format!("groups/{}", self.id()))?;
         Ok(())
     }
+
+    pub fn id(&self) -> u8 {
+        self.id.unwrap()
+    }
+
+    pub fn client(&self) -> &C {
+        self.client.unwrap()
+    }
+
+    pub fn action(&mut self) -> &mut GroupAction {
+        &mut self.action
+    }
+
+    pub fn ty(&self) -> &str {
+        &self.ty
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
 }
 
 #[cfg(test)]
@@ -133,4 +177,20 @@ mod tests_groups {
         let group = Group::get_group(&http_client_mock, 1);
         assert!(group.is_err());
     }
+
+    #[test]
+    fn create_group_ok() {
+        let response = String::from(r#"[{"success":{"id":"9"}}]"#);
+        let http_client_mock = HTTPClientMock{
+            body: None, return_string: Some(response), error: None
+        };
+        let group = Group::get_group(&http_client_mock, 1);
+        assert!(group.is_ok());
+    }
+
+    #[test]
+    fn create_group_err() {
+
+    }
+
 }
