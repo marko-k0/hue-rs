@@ -8,6 +8,20 @@ Hue-rs is a *Rust* library that can be used for home automation on Philips Hue l
 It offers a basic *CLI* with which you can control your lights from a terminal instead
 of looking for your phone and making desired changes from official Philips Hue app.
 
+## Progress
+
+### Todo
+
+- [ ] Tests
+- [ ] Finalize *light*, *group* and *scene* API
+- [ ] *Let there be light* voice recognition
+
+### Done
+
+- [x] Lights
+  * [x] Get all lights
+  * [x] 
+
 ## Installation and CLI use
 
 ```bash
@@ -39,8 +53,8 @@ OPTIONS:
 SUBCOMMANDS:
     group    Controls a group of lights
     help     Prints this message or the help of the given subcommand(s)
-    light    Controls the lights
-    scene    Controls a scene
+    light    Controls a light(s)
+    scene    Controls a scene(s)
     
 $ hue light on 1
 [{"success":{"/lights/1/state/on":true}}]
@@ -63,9 +77,3 @@ pub fn funhue() {
     light.update()
 }
 ```
-
-## Todo
-
-- [ ] Tests
-- [ ] Finalize *light*, *group* and *scene* API
-- [ ] *Let there be light* voice recognition

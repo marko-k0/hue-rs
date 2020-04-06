@@ -260,6 +260,16 @@ pub struct Light<'a, C: HTTPClient + Default> {
 /// API for operations on the lights.
 impl<'a, C: HTTPClient + Default> Light<'a, C> {
 
+    /// Get all registered lights.
+    ///
+    /// # Errors
+    ///
+    /// ```
+    /// let lights = Light::get_light(&client);
+    /// let answer = my_crate::add_one(arg);
+    ///
+    /// assert_eq!(6, answer);
+    /// ```
     pub fn get_lights(http_client: &'a C) -> Res<BTreeMap<String,Self>> {
         let resp = http_client.get("lights")?;
         let mut lights: BTreeMap<String,Self> = serde_json::from_str(&resp)?;

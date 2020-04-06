@@ -14,6 +14,7 @@ use serde_yaml;
 use hue::*;
 use hue::lights::*;
 use hue::groups::*;
+use hue::scenes::*;
 
 fn main() {
     let yaml = load_yaml!("bin-cli.yml");
@@ -120,7 +121,30 @@ fn run_group_power(client: &Client, m: &ArgMatches, power: bool) -> Res<()> {
 }
 
 fn run_scene(client: &Client, m: &ArgMatches) -> Res<()> {
-    // TODO:
+    match m.subcommand() {
+        ("list", _) => return run_scene_list(client),
+        ("on", Some(sub_m)) => return run_scene_power(client, sub_m, true),
+        ("off", Some(sub_m)) => return run_scene_power(client, sub_m, false),
+        (_, _) => return Ok(()),
+    }
+
+    Ok(())
+}
+
+fn run_scene_list(client: &Client) -> Res<()> {
+    let scene_list = Scene::get_scenes(client);
+
+    if let Ok(scenes) = scene_list {
+        let scene_list_yml = serde_yaml::to_string(&scenes).unwrap();
+        println!("{}", scene_list_yml);
+    } else if let Err(e) = scene_list {
+        return Result::Err(e.into())
+    }
+
+    Ok(())
+}
+
+fn run_scene_power(client: &Client, m: &ArgMatches, power: bool) -> Res<()> {
 
     Ok(())
 }
