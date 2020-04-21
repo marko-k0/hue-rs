@@ -16,7 +16,7 @@ pub struct Settings {
 }
 
 impl Settings {
-    /// Load configuration from environment or ~/.huerc configuration file.
+    /// Load configuration from environment or ~/.huerc.ini configuration file.
     ///
     /// Environment variables have a priority over configuration file.
     pub fn new(config_file: Option<&str>) -> Result<Self, ConfigError> {

@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::time::Duration;
-pub mod lights;
 pub mod groups;
+pub mod lights;
 pub mod scenes;
 
 extern crate config;
@@ -30,14 +30,14 @@ pub trait HTTPClient {
 #[derive(Debug)]
 pub struct Client {
     settings: Settings,
-    client: reqwest::Client,
+    client: reqwest::blocking::Client,
 }
 
 impl Default for Client {
     fn default() -> Self {
         Client {
             settings: Settings::new(None).unwrap(),
-            client: reqwest::Client::new(),
+            client: reqwest::blocking::Client::new(),
         }
     }
 }
@@ -46,38 +46,57 @@ impl Client {
     pub fn new() -> Self {
         Client {
             settings: Settings::new(None).unwrap(),
-            client: reqwest::Client::builder()
+            client: reqwest::blocking::Client::builder()
                 .timeout(Duration::from_secs(10))
                 .danger_accept_invalid_certs(true)
-                .build().unwrap()
+                .build()
+                .unwrap(),
         }
     }
 
     fn rest_call_url(&self, suffix: &str) -> String {
-        format!("https://{}/api/{}/{}",
-                self.settings.ip(), self.settings.username(), suffix)
+        format!(
+            "https://{}/api/{}/{}",
+            self.settings.ip(),
+            self.settings.username(),
+            suffix
+        )
     }
 }
 
 impl HTTPClient for Client {
     fn get(&self, call: &str) -> Res<String> {
-        Ok(self.client.get(self.rest_call_url(call).as_str())
-           .send()?.text()?)
+        Ok(self
+            .client
+            .get(self.rest_call_url(call).as_str())
+            .send()?
+            .text()?)
     }
 
     fn post(&self, call: &str, body: String) -> Res<String> {
-        Ok(self.client.post(self.rest_call_url(call).as_str())
-           .body(body).send()?.text()?)
+        Ok(self
+            .client
+            .post(self.rest_call_url(call).as_str())
+            .body(body)
+            .send()?
+            .text()?)
     }
 
     fn put(&self, call: &str, body: String) -> Res<String> {
-        Ok(self.client.put(self.rest_call_url(call).as_str())
-           .body(body).send()?.text()?)
+        Ok(self
+            .client
+            .put(self.rest_call_url(call).as_str())
+            .body(body)
+            .send()?
+            .text()?)
     }
 
     fn delete(&self, call: &str) -> Res<String> {
-        Ok(self.client.delete(self.rest_call_url(call).as_str())
-           .send()?.text()?)
+        Ok(self
+            .client
+            .delete(self.rest_call_url(call).as_str())
+            .send()?
+            .text()?)
     }
 }
 

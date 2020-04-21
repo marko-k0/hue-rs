@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json;
+use std::collections::BTreeMap;
 
 use super::*;
 
@@ -106,7 +106,7 @@ impl LightState {
         "".to_owned()
     }
     pub fn set_alert(&mut self, alert: &str) {
-        let values = [ "none", "select", "lselect" ];
+        let values = ["none", "select", "lselect"];
         if values.contains(&alert) {
             self.alert = Some(alert.to_owned())
         }
@@ -118,7 +118,7 @@ impl LightState {
         "".to_owned()
     }
     pub fn set_effect(&mut self, effect: &str) {
-        let values = [ "none", "colorloop" ];
+        let values = ["none", "colorloop"];
         if values.contains(&effect) {
             self.effect = Some(effect.to_owned())
         }
@@ -135,7 +135,6 @@ impl LightState {
     }
 }
 
-
 #[cfg(test)]
 mod tests_light_state {
 
@@ -143,31 +142,27 @@ mod tests_light_state {
 
     #[test]
     fn state_on_off() {
-        let mut state = LightStateBuilder::default().on(true)
-            .build().unwrap();
+        let mut state = LightStateBuilder::default().on(true).build().unwrap();
         assert!(state.on());
         state.set_on(false);
-        assert!(! state.on());
+        assert!(!state.on());
     }
 
     #[test]
     fn state_bri() {
-        let mut state = LightStateBuilder::default()
-            .build().unwrap();
+        let mut state = LightStateBuilder::default().build().unwrap();
         state.set_bri(100);
         assert_eq!(state.bri(), 100);
     }
 
     #[test]
     fn state_hue() {
-        let mut state = LightStateBuilder::default()
-            .build().unwrap();
+        let mut state = LightStateBuilder::default().build().unwrap();
         assert_eq!(state.hue(), 0);
         state.set_hue(100);
         assert_eq!(state.hue(), 0);
 
-        let mut state = LightStateBuilder::default().hue(Some(10))
-            .build().unwrap();
+        let mut state = LightStateBuilder::default().hue(Some(10)).build().unwrap();
         state.set_hue(100);
         assert_eq!(state.hue(), 100);
     }
@@ -179,8 +174,7 @@ mod tests_light_state {
         state.set_sat(100);
         assert_eq!(state.sat(), 0);
 
-        let mut state = LightStateBuilder::default().sat(Some(10))
-            .build().unwrap();
+        let mut state = LightStateBuilder::default().sat(Some(10)).build().unwrap();
         state.set_sat(100);
         assert_eq!(state.sat(), 100);
     }
@@ -192,8 +186,7 @@ mod tests_light_state {
         state.set_ct(100);
         assert_eq!(state.ct(), 0);
 
-        let mut state = LightStateBuilder::default().ct(Some(10))
-            .build().unwrap();
+        let mut state = LightStateBuilder::default().ct(Some(10)).build().unwrap();
         state.set_ct(100);
         assert_eq!(state.ct(), 100);
     }
@@ -205,8 +198,10 @@ mod tests_light_state {
         state.set_xy([10.0, 10.0]);
         assert_eq!(state.xy(), [0.0, 0.0]);
 
-        let mut state = LightStateBuilder::default().xy(Some([0.0, 0.0]))
-            .build().unwrap();
+        let mut state = LightStateBuilder::default()
+            .xy(Some([0.0, 0.0]))
+            .build()
+            .unwrap();
         state.set_xy([10.0, 10.0]);
         assert_eq!(state.xy(), [10.0, 10.0]);
     }
@@ -232,7 +227,6 @@ mod tests_light_state {
     }
 }
 
-
 #[derive(Serialize, Deserialize, Debug)]
 struct LightSWUpdate {
     state: String,
@@ -247,19 +241,18 @@ pub struct Light<'a, C: HTTPClient + Default> {
     id: Option<u8>,
     state: LightState,
     swupdate: LightSWUpdate,
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     ty: String,
     name: String,
     modelid: String,
     manufacturername: String,
     productname: String,
     uniqueid: String,
-    swversion: String
+    swversion: String,
 }
 
 /// API for operations on the lights.
 impl<'a, C: HTTPClient + Default> Light<'a, C> {
-
     /// Get all registered lights.
     ///
     /// # Errors
@@ -270,9 +263,9 @@ impl<'a, C: HTTPClient + Default> Light<'a, C> {
     ///
     /// assert_eq!(6, answer);
     /// ```
-    pub fn get_lights(http_client: &'a C) -> Res<BTreeMap<String,Self>> {
+    pub fn get_lights(http_client: &'a C) -> Res<BTreeMap<String, Self>> {
         let resp = http_client.get("lights")?;
-        let mut lights: BTreeMap<String,Self> = serde_json::from_str(&resp)?;
+        let mut lights: BTreeMap<String, Self> = serde_json::from_str(&resp)?;
         for (id, light) in lights.iter_mut() {
             light.id = Some(id.parse().unwrap());
             light.client = Some(http_client);
@@ -291,7 +284,8 @@ impl<'a, C: HTTPClient + Default> Light<'a, C> {
     pub fn update_state(self) -> Res<Self> {
         // update state
         let state_json = serde_json::to_string(&self.state)?;
-        self.client().put(&format!("lights/{}/state", self.id()), state_json)?;
+        self.client()
+            .put(&format!("lights/{}/state", self.id()), state_json)?;
         // get new state
         let response = self.client().get(&format!("lights/{}", self.id()))?;
         let light: Self = serde_json::from_str(&response)?;
@@ -299,8 +293,9 @@ impl<'a, C: HTTPClient + Default> Light<'a, C> {
     }
 
     pub fn rename(&mut self, name: &str) -> Res<&mut Self> {
-        let body = json!({"name": name});
-        self.client().put(&format!("lights/{}", self.id()), body.to_string())?;
+        let body = json!({ "name": name });
+        self.client()
+            .put(&format!("lights/{}", self.id()), body.to_string())?;
         self.name = name.to_owned();
         Ok(self)
     }
@@ -334,12 +329,13 @@ impl<'a, C: HTTPClient + Default> Light<'a, C> {
 #[cfg(test)]
 mod tests_lights {
 
-    use super::*;
     use super::test_common::HTTPClientMock;
+    use super::*;
 
     #[test]
     fn get_light_ok() {
-        let response = String::from(r#"
+        let response = String::from(
+            r#"
         {
             "state": {
                 "on": false,
@@ -381,10 +377,13 @@ mod tests_lights {
             "swversion": "1.46.13_r26312",
             "swconfigid": "564ABA6B",
             "productid": "Philips-LWB010-1-A19DLv3"
-        }"#);
+        }"#,
+        );
 
-        let http_client_mock = HTTPClientMock{
-            body: None, return_string: Some(response), error: None
+        let http_client_mock = HTTPClientMock {
+            body: None,
+            return_string: Some(response),
+            error: None,
         };
         let light = Light::get_light(&http_client_mock, 1);
         assert!(light.is_ok());
@@ -393,11 +392,12 @@ mod tests_lights {
     #[test]
     fn get_light_err() {
         let response = String::from("not expected response");
-        let http_client_mock = HTTPClientMock{
-            body: None, return_string: Some(response), error: None
+        let http_client_mock = HTTPClientMock {
+            body: None,
+            return_string: Some(response),
+            error: None,
         };
         let light = Light::get_light(&http_client_mock, 1);
         assert!(light.is_err());
     }
 }
-

@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json;
+use std::collections::BTreeMap;
 
 use super::*;
 
@@ -22,21 +22,20 @@ pub struct Group<'a, C: HTTPClient + Default> {
     lights: Vec<String>,
     #[serde(skip_serializing)]
     sensors: Vec<u8>,
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     ty: String,
     state: GroupState,
     #[serde(skip_serializing)]
     recycle: bool,
     class: Option<String>,
     #[serde(skip_serializing)]
-    action: GroupAction
+    action: GroupAction,
 }
 
 impl<'a, C: HTTPClient + Default> Group<'a, C> {
-
     pub fn get_groups(http_client: &'a C) -> Res<BTreeMap<String, Self>> {
         let resp: String = http_client.get("groups")?;
-        let mut groups: BTreeMap<String,Self> = serde_json::from_str(&resp)?;
+        let mut groups: BTreeMap<String, Self> = serde_json::from_str(&resp)?;
         for (id, group) in groups.iter_mut() {
             group.id = Some(id.parse().unwrap());
             group.client = Some(http_client);
@@ -57,11 +56,13 @@ impl<'a, C: HTTPClient + Default> Group<'a, C> {
         Ok(())
     }
 
-    pub fn create_group(http_client: &'a C,
-                        name: String, lights: Vec<u8>,
-                        ty: Option<String>, class: Option<String>)
-                        -> Res<Self> {
-
+    pub fn create_group(
+        http_client: &'a C,
+        name: String,
+        lights: Vec<u8>,
+        ty: Option<String>,
+        class: Option<String>,
+    ) -> Res<Self> {
         // TODO: ty and class
         let body = serde_json::json!({
             "name": name,
@@ -79,7 +80,8 @@ impl<'a, C: HTTPClient + Default> Group<'a, C> {
     pub fn update_state(self) -> Res<Self> {
         // update group
         let state = serde_json::to_string(&self.action)?;
-        self.client().put(&format!("groups/{}/action", self.id()), state)?;
+        self.client()
+            .put(&format!("groups/{}/action", self.id()), state)?;
         // get updated group
         let resp = self.client().get(&format!("groups/{}", self.id()))?;
         let group: Self = serde_json::from_str(&resp)?;
@@ -89,7 +91,8 @@ impl<'a, C: HTTPClient + Default> Group<'a, C> {
     pub fn update(self) -> Res<Self> {
         // update group
         let attributes = serde_json::to_string(&self)?;
-        self.client().put(&format!("groups/{}", self.id()), attributes)?;
+        self.client()
+            .put(&format!("groups/{}", self.id()), attributes)?;
         // get updated group
         let resp = self.client().get(&format!("groups/{}", self.id()))?;
         let group: Self = serde_json::from_str(&resp)?;
@@ -120,18 +123,18 @@ impl<'a, C: HTTPClient + Default> Group<'a, C> {
     pub fn name(&self) -> &str {
         &self.name
     }
-
 }
 
 #[cfg(test)]
 mod tests_groups {
 
-    use super::*;
     use super::test_common::HTTPClientMock;
+    use super::*;
 
     #[test]
     fn get_group_ok() {
-        let response = String::from(r#"
+        let response = String::from(
+            r#"
         {
         "name": "Living room",
         "lights": [
@@ -159,10 +162,13 @@ mod tests_groups {
             "ct": 443,
             "alert": "none",
             "colormode": "xy"
-        }"#);
+        }"#,
+        );
 
-        let http_client_mock = HTTPClientMock{
-            body: None, return_string: Some(response), error: None
+        let http_client_mock = HTTPClientMock {
+            body: None,
+            return_string: Some(response),
+            error: None,
         };
         let group = Group::get_group(&http_client_mock, 1);
         assert!(group.is_ok());
@@ -171,8 +177,10 @@ mod tests_groups {
     #[test]
     fn get_group_err() {
         let response = String::from("not expected response");
-        let http_client_mock = HTTPClientMock{
-            body: None, return_string: Some(response), error: None
+        let http_client_mock = HTTPClientMock {
+            body: None,
+            return_string: Some(response),
+            error: None,
         };
         let group = Group::get_group(&http_client_mock, 1);
         assert!(group.is_err());
@@ -181,16 +189,15 @@ mod tests_groups {
     #[test]
     fn create_group_ok() {
         let response = String::from(r#"[{"success":{"id":"9"}}]"#);
-        let http_client_mock = HTTPClientMock{
-            body: None, return_string: Some(response), error: None
+        let http_client_mock = HTTPClientMock {
+            body: None,
+            return_string: Some(response),
+            error: None,
         };
         let group = Group::get_group(&http_client_mock, 1);
         assert!(group.is_ok());
     }
 
     #[test]
-    fn create_group_err() {
-
-    }
-
+    fn create_group_err() {}
 }

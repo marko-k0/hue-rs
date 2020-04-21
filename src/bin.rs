@@ -1,20 +1,18 @@
-#[macro_use]
+extern crate hue;
 extern crate slog;
 extern crate slog_term;
-extern crate hue;
 #[macro_use]
 extern crate clap;
 
-use std::error::Error;
-use std::process;
 use clap::App;
 use clap::ArgMatches;
 use serde_yaml;
+use std::process;
 
-use hue::*;
-use hue::lights::*;
 use hue::groups::*;
+use hue::lights::*;
 use hue::scenes::*;
+use hue::*;
 
 fn main() {
     let yaml = load_yaml!("bin-cli.yml");
@@ -53,7 +51,7 @@ fn run_light_list(client: &Client) -> Res<()> {
         let light_list_yml = serde_yaml::to_string(&lights).unwrap();
         println!("{}", light_list_yml);
     } else if let Err(e) = light_list {
-        return Result::Err(e.into())
+        return Result::Err(e.into());
     }
 
     Ok(())
@@ -95,7 +93,7 @@ fn run_group_list(client: &Client) -> Res<()> {
         let group_list_yml = serde_yaml::to_string(&groups).unwrap();
         println!("{}", group_list_yml);
     } else if let Err(e) = group_list {
-        return Result::Err(e.into())
+        return Result::Err(e.into());
     }
 
     Ok(())
@@ -124,11 +122,8 @@ fn run_scene(client: &Client, m: &ArgMatches) -> Res<()> {
     match m.subcommand() {
         ("list", _) => return run_scene_list(client),
         ("on", Some(sub_m)) => return run_scene_power(client, sub_m, true),
-        ("off", Some(sub_m)) => return run_scene_power(client, sub_m, false),
         (_, _) => return Ok(()),
     }
-
-    Ok(())
 }
 
 fn run_scene_list(client: &Client) -> Res<()> {
@@ -138,13 +133,12 @@ fn run_scene_list(client: &Client) -> Res<()> {
         let scene_list_yml = serde_yaml::to_string(&scenes).unwrap();
         println!("{}", scene_list_yml);
     } else if let Err(e) = scene_list {
-        return Result::Err(e.into())
+        return Result::Err(e.into());
     }
 
     Ok(())
 }
 
 fn run_scene_power(client: &Client, m: &ArgMatches, power: bool) -> Res<()> {
-
     Ok(())
 }

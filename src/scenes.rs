@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json;
+use std::collections::BTreeMap;
 
 use super::*;
 
@@ -17,7 +17,7 @@ pub struct Scene<'a, C: HTTPClient + Default> {
     #[serde(skip)]
     id: Option<String>,
     name: String,
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     ty: String,
     group: Option<String>,
     lights: Vec<String>,
@@ -27,12 +27,11 @@ pub struct Scene<'a, C: HTTPClient + Default> {
     appdata: Option<AppData>,
     picture: String,
     lastupdated: String,
-    version: u8
+    version: u8,
 }
 
 /// API for operations on the scenes.
 impl<'a, C: HTTPClient + Default> Scene<'a, C> {
-
     pub fn get_scenes(http_client: &'a C) -> Res<BTreeMap<String, Self>> {
         let resp: String = http_client.get("scenes")?;
         let mut scenes: BTreeMap<String, Self> = serde_json::from_str(&resp)?;
