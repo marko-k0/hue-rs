@@ -74,13 +74,6 @@ subcommands:
                     help: Scene key(s)
                     takes_value: true
                     multiple: true
-          - off:
-              about: Turn off a group(s)
-              args:
-                - light:
-                    help: Scene key(s)
-                    takes_value: true
-                    multiple: true
           - save:
               about: Save a scene
               subcommands:

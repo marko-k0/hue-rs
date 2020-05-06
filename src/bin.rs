@@ -25,13 +25,13 @@ fn main() {
 }
 
 fn run(matches: ArgMatches) -> Res<()> {
-    let ref client = Client::new();
+    let ref client = Client::new(matches.value_of("config"));
 
     match matches.subcommand() {
         ("light", Some(sub_m)) => return run_light(client, sub_m),
         ("group", Some(sub_m)) => return run_group(client, sub_m),
         ("scene", Some(sub_m)) => return run_scene(client, sub_m),
-        (_, _) => return Ok(()),
+        _ => return Ok(()),
     }
 }
 
@@ -40,7 +40,7 @@ fn run_light(client: &Client, matches: &ArgMatches) -> Res<()> {
         ("list", _) => return run_light_list(client),
         ("on", Some(sub_m)) => return run_light_power(client, sub_m, true),
         ("off", Some(sub_m)) => return run_light_power(client, sub_m, false),
-        (_, _) => return Ok(()),
+        _ => return Ok(()),
     }
 }
 

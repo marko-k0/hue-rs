@@ -4,7 +4,8 @@ pub mod groups;
 pub mod lights;
 pub mod scenes;
 
-extern crate config;
+#[macro_use]
+extern crate lazy_static;
 extern crate reqwest;
 extern crate serde;
 #[macro_use]
@@ -14,6 +15,7 @@ extern crate serde_json;
 extern crate custom_derive;
 #[macro_use]
 extern crate derive_builder;
+extern crate rand;
 
 mod settings;
 use settings::Settings;
@@ -43,9 +45,9 @@ impl Default for Client {
 }
 
 impl Client {
-    pub fn new() -> Self {
+    pub fn new(config_file: Option<&str>) -> Self {
         Client {
-            settings: Settings::new(None).unwrap(),
+            settings: Settings::new(config_file).unwrap(),
             client: reqwest::blocking::Client::builder()
                 .timeout(Duration::from_secs(10))
                 .danger_accept_invalid_certs(true)
@@ -55,6 +57,12 @@ impl Client {
     }
 
     fn rest_call_url(&self, suffix: &str) -> String {
+        println!(
+            "https://{}/api/{}/{}",
+            self.settings.ip(),
+            self.settings.username(),
+            suffix
+        );
         format!(
             "https://{}/api/{}/{}",
             self.settings.ip(),

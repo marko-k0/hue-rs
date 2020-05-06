@@ -258,10 +258,10 @@ impl<'a, C: HTTPClient + Default> Light<'a, C> {
     /// # Errors
     ///
     /// ```
-    /// let lights = Light::get_light(&client);
-    /// let answer = my_crate::add_one(arg);
+    /// let ref client = Client::new();
+    /// let lights = Light::get_light(client);
     ///
-    /// assert_eq!(6, answer);
+    /// assert_ne!(lights, None);
     /// ```
     pub fn get_lights(http_client: &'a C) -> Res<BTreeMap<String, Self>> {
         let resp = http_client.get("lights")?;
